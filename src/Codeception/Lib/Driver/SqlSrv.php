@@ -36,13 +36,13 @@ class SqlSrv extends Db
 
         $this->dbh->exec(
             "
-            DECLARE tables_cursor CURSOR FOR SELECT name FROM sysobjects WHERE type = 'U';
-            OPEN tables_cursor DECLARE @tablename sysname;
-            FETCH NEXT FROM tables_cursor INTO @tablename;
+            DECLARE tables_cursor CURSOR FOR SELECT s.name AS [schema], t.name AS [table] FROM sys.sysobjects t LEFT JOIN sys.schemas s ON s.schema_id = t.uid WHERE t.type = 'U';
+            OPEN tables_cursor; DECLARE @tableschema sysname, @tablename sysname;
+            FETCH NEXT FROM tables_cursor INTO @tableschema, @tablename;
             WHILE (@@FETCH_STATUS <> -1)
             BEGIN
-                EXEC ('DROP TABLE [' + @tablename + ']')
-                FETCH NEXT FROM tables_cursor INTO @tablename;
+                EXEC ('DROP TABLE [' + @tableschema + '].[' + @tablename + ']')
+                FETCH NEXT FROM tables_cursor INTO @tableschema, @tablename;
             END
             DEALLOCATE tables_cursor;"
         );
